@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import ro.sabin.chess.Chess;
 import ro.sabin.chess.activemq.ActiveMQUtil;
 import ro.sabin.chess.pieces.ChessConstants;
 import ro.sabin.chess.pieces.Piece;
@@ -19,6 +20,7 @@ public class AppBoard extends Composite {
 
   private static final String DATA_ORING_BG = "DATA_ORING_BG";
   private final int SQUARE_SIZE = 80;
+
   private Label[][] piese;
 
   private int x_start = -1, y_start = -1;
@@ -27,18 +29,20 @@ public class AppBoard extends Composite {
 
   private Label selectedLabel;
 
+  private InfoBoard infoBoard;
+
   private boolean isSelected = false;
 
+  private boolean myTurn = false;
+
   final Color red = new Color(this.getDisplay(), 222, 0, 0);
+  Color brown = new Color(this.getDisplay(), 136, 69, 0);
+  Color lightBrown = new Color(this.getDisplay(), 222, 152, 106);
 
   public AppBoard(Shell compBoard) {
     super(compBoard, SWT.NONE);
     try {
-      Color brown = new Color(this.getDisplay(), 136, 69, 0);
-      Color lightBrown = new Color(this.getDisplay(), 222, 152, 106);
-
-      this.setBackground(new Color(this.getDisplay(), 100, 100, 100));
-
+//      this.setBackground(new Color(this.getDisplay(), 100, 100, 100));
       GridData data = new GridData(GridData.FILL_BOTH);
       this.setLayoutData(data);
 
@@ -72,12 +76,12 @@ public class AppBoard extends Composite {
 
       initChessTable();
 
-        for (int i = 0; i < 8; i++) {
-          for (int j = 0; j < 8; j++) {
-            MouseListener mouseListener = new MyMouseListener(i, j);
-            piese[i][j].addMouseListener(mouseListener);
-          }
+      for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+          MouseListener mouseListener = new MyMouseListener(i, j);
+          piese[i][j].addMouseListener(mouseListener);
         }
+      }
 
       printTable();
 
@@ -105,7 +109,6 @@ public class AppBoard extends Composite {
   }
 
   public void udpateTableMove(int xSrc, int ySrc, int xDest, int yDest) {
-//    System.out.println(xSrc + " " + ySrc + " " + piese[xSrc][ySrc]);
     Image srcImg = piese[xSrc][ySrc].getImage();
     if (srcImg != null && !srcImg.isDisposed()) {
       piese[xDest][yDest].setImage(srcImg);
@@ -125,6 +128,7 @@ public class AppBoard extends Composite {
   }
 
   class MyMouseListener implements MouseListener {
+
     private final int coordX;
     private final int coordY;
 
@@ -139,7 +143,7 @@ public class AppBoard extends Composite {
 
     @Override
     public void mouseDown(MouseEvent event) {
-      if (ActiveMQUtil.getGameIsStarted()) {
+      if (myTurn) {
         System.out.println("mouseDown");
         if (x_start == -1) {
           System.out.println("ssss");
@@ -147,17 +151,23 @@ public class AppBoard extends Composite {
           y_start = coordY;
           isSelected = true;
           selectedLabel = (Label)event.widget;
+          if (selectedLabel.getImage() == null) {
+            isSelected = false;
+          }
         }
         if ((coordX != x_start || coordY != y_start) && x_start != -1 && y_start != -1) {
           printTable();
           System.out.println("222");
           System.out.println("moved " + x_start + "|" + y_start + " => " + coordX + "|" + coordY);
-          appBoard.move(x_start, y_start, coordX, coordY);
+          appBoard.move(x_start, x_start, coordX, coordY);
           udpateTableMove(x_start, y_start, coordX, coordY);
+          infoBoard = Chess.getInfoBoard();
+          infoBoard.addItem("Mutarea mea -- " + x_start + " : " + x_start  + " -> " + coordX + " : " + coordY);
+          System.out.println(piese[x_start][x_start]);
+          System.out.println(piese[x_start][x_start].getImage());
+
           ActiveMQUtil.send("Mutare", ChessConstants.TYPE_MOVE, "" + x_start + y_start + coordX + coordY);
-
-          //initChessTable();
-
+          myTurn = false;
 
           printTable();
           isSelected = false;
@@ -179,8 +189,16 @@ public class AppBoard extends Composite {
 
     @Override
     public void mouseDoubleClick(MouseEvent arg0) {
-      System.out.println("dc");
     }
 
   }
+
+  public boolean isMyTurn() {
+    return myTurn;
+  }
+
+  public void setMyTurn(boolean myTurn) {
+    this.myTurn = myTurn;
+  }
+
 }

@@ -19,8 +19,10 @@ import org.apache.activemq.command.ActiveMQTopic;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 
+import ro.sabin.chess.Chess;
 import ro.sabin.chess.pieces.ChessConstants;
 import ro.sabin.chess.ui.AppBoard;
+import ro.sabin.chess.ui.InfoBoard;
 
 /**
  * Functii utilitare pt comunicarea cu serverul ActiveMQ
@@ -44,12 +46,8 @@ public class ActiveMQUtil {
   static MessageConsumer consumer;
   static MessageProducer producer;
 
-  private static boolean GameIsStarted = true;
-
-
-
   // conenct to ActiveMQ Server
-  public static boolean connect(AppBoard myBoard) {
+  public static boolean connect(AppBoard myBoard, InfoBoard myInfoBoard) {
     try {
       System.out.println("connecting....");
 
@@ -62,6 +60,7 @@ public class ActiveMQUtil {
 
       consumer = session.createConsumer(topic);
       consumer.setMessageListener(new MessageListener() {
+
         @Override
         public void onMessage(Message msg) {
           try {
@@ -76,6 +75,17 @@ public class ActiveMQUtil {
             // .. process message
             int type = msg.getIntProperty("TYPE");
             switch (type) {
+              case ChessConstants.TYPE_START_OK:
+                Chess.getDisplay().syncExec(new Runnable() {
+
+                  @Override
+                  public void run() {
+                    InfoBoard infoBoard = Chess.getInfoBoard();
+                    infoBoard.addItem("Jocul a inceput... va rugam asteptati mutarea primului jucator");
+                  }
+                });
+
+                break;
               case ChessConstants.TYPE_START_INIT:
                 // am primit un request de start de la cineva
                 // trebuie sa raspuns cu OK_START
@@ -87,10 +97,19 @@ public class ActiveMQUtil {
                   mb.setMessage("Eroare la raspuns cerere start");
                   mb.open();
                 } else {
-//                setGameIsStarted(true);
+                  Chess.getDisplay().syncExec(new Runnable() {
+
+                    @Override
+                    public void run() {
+                      myInfoBoard.addItem("Jocul a inceput, puteti muta");
+                    }
+                  });
+                  myBoard.setMyTurn(true);
                 }
                 break;
+
               case ChessConstants.TYPE_MOVE:
+                myBoard.setMyTurn(true);
                 // am prmit start joc ok de la cineva, incepem jocul
                 System.out.println("Mutare");
                 String coor = msg.getStringProperty("coor");
@@ -98,11 +117,19 @@ public class ActiveMQUtil {
                 int ystart = Integer.parseInt(coor.charAt(1) + "");
                 int xstop = Integer.parseInt(coor.charAt(2) + "");
                 int ystop = Integer.parseInt(coor.charAt(3) + "");
+                System.out.println(myBoard);
                 myBoard.appBoard.move(xstart, ystart, xstop, ystop);
-                myBoard.printTable();
-//                myBoard.udpateTableMove(xstart, ystart, xstop, ystop);
+                Chess.getDisplay().syncExec(new Runnable() {
+
+                  @Override
+                  public void run() {
+                    myBoard.udpateTableMove(xstart, ystart, xstop, ystop);
+                    myInfoBoard
+                      .addItem("Mutare adversar -- " + xstart + " : " + ystart + " -> " + xstop + " : " + ystop);
+                  }
+                });
+
                 break;
-              // ......
             }
           } catch (Exception e) {
             e.printStackTrace();
@@ -131,6 +158,22 @@ public class ActiveMQUtil {
       msg.setIntProperty("TYPE", type);
       msg.setLongProperty("CLIENT", CLIENT_ID);
       msg.setStringProperty("coor", coor);
+
+      Chess.getDisplay().syncExec(new Runnable() {
+
+        @Override
+        public void run() {
+          if (type == ChessConstants.TYPE_START_INIT) {
+            InfoBoard infoBoard = Chess.getInfoBoard();
+            infoBoard.addItem("Cererea de start a fost trimisa");
+          }
+//else if (type == ChessConstants.TYPE_START_OK) {
+//            InfoBoard infoBoard = Chess.getInfoBoard();
+//            infoBoard.addItem("Jocul a inceput... va rugam asteptati mutarea primului jucator");
+//          }
+        }
+      });
+
       producer.send(msg);
       System.out.println("Sent message!");
     } catch (JMSException e) {
@@ -152,16 +195,5 @@ public class ActiveMQUtil {
     }
     return true;
   }
-
-
-  public static boolean getGameIsStarted() {
-    return GameIsStarted;
-  }
-
-
-  public static void setGameIsStarted(boolean gameIsStarted) {
-    GameIsStarted = gameIsStarted;
-  }
-
 
 }

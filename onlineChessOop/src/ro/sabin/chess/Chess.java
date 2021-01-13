@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Shell;
 import ro.sabin.chess.activemq.ActiveMQUtil;
 import ro.sabin.chess.pieces.ChessConstants;
 import ro.sabin.chess.ui.AppBoard;
+import ro.sabin.chess.ui.InfoBoard;
 
 public class Chess {
 
@@ -20,7 +21,13 @@ public class Chess {
 
   private static Shell shell;
 
-  private static AppBoard myBoard;
+  // tabla cu piese
+  private static AppBoard chessBoard;
+
+  // table cu informatii: mutari, etc
+  private static InfoBoard infoBoard;
+
+  private static Button btnConnect;
 
   public static void main(String[] args) {
     display = new Display();
@@ -30,45 +37,52 @@ public class Chess {
     shell.setSize(1200, 900);
     shell.setLocation(500, 50);
     shell.setLayout(new GridLayout(2, false));
-    shell.setText("ID CLIENT: " + ActiveMQUtil.CLIENT_ID);
+    shell.setText("ID Player: " + ActiveMQUtil.CLIENT_ID);
 
-    myBoard = new AppBoard(shell);
+    chessBoard = new AppBoard(shell);
+
+    infoBoard = new InfoBoard(shell);
 
     createButtons();
 
     open();
   }
 
+  public static InfoBoard getInfoBoard() {
+    return infoBoard;
+  }
+
   private static void createButtons() {
     // butoane
-    Button btnConnect = new Button(shell, SWT.PUSH);
+    btnConnect = new Button(shell, SWT.PUSH);
     btnConnect.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
     btnConnect.setText("&Start Joc");
     btnConnect.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        ActiveMQUtil.connect(myBoard);
+        ActiveMQUtil.connect(chessBoard, infoBoard);
         if (!ActiveMQUtil.send("Cerere Start Joc", ChessConstants.TYPE_START_INIT, "")) {
           MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR);
           mb.setMessage("Eroare la trimitere!");
           mb.open();
+        } else {
+          getBtnConnectDisable();
         }
       }
     });
 
-//    Button btnSend = new Button(shell, SWT.PUSH);
-//    btnSend.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-//    btnSend.setText("&START INIT");
-//    btnSend.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//
-//      }
-//    });
   }
 
   public static Shell getShell() {
     return shell;
+  }
+
+  public static Display getDisplay() {
+    return display;
+  }
+
+  public static void getBtnConnectDisable() {
+    btnConnect.setEnabled(false);
   }
 
   public static void open() {
@@ -83,7 +97,6 @@ public class Chess {
         display.sleep();
       }
     }
-
     // disposes all associated windows and their components
     display.dispose();
   }

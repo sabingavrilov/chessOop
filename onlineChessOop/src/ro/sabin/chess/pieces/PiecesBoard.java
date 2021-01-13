@@ -13,20 +13,20 @@ public class PiecesBoard {
     Piece queenW = new Queen(true, "src/images/Chess_queen_white.png");
     Piece queenB = new Queen(false, "src/images/Chess_queen.png");
 
-    Piece kingW = new King(true, "D:\\ULBS\\OOPchess_workspace\\Chess_king_white.png");
-    Piece kingB = new King(false, "D:\\ULBS\\OOPchess_workspace\\Chess_king.png");
+    Piece kingW = new King(true, "src/images/Chess_king_white.png");
+    Piece kingB = new King(false, "src/images/Chess_king.png");
 
-    Piece BishopW = new Bishop(true, "D:\\ULBS\\OOPchess_workspace\\Chess_bishop_white.png");
-    Piece BishopB = new Bishop(false, "D:\\ULBS\\OOPchess_workspace\\Chess_bishop.png");
+    Piece BishopW = new Bishop(true, "src/images/Chess_bishop_white.png");
+    Piece BishopB = new Bishop(false, "src/images/Chess_bishop.png");
 
-    Piece KnightW = new Knight(true, "D:\\ULBS\\OOPchess_workspace\\Chess_knight_white.png");
-    Piece KnightB = new Knight(false, "D:\\ULBS\\OOPchess_workspace\\Chess_knight.png");
+    Piece KnightW = new Knight(true, "src/images/Chess_knight_white.png");
+    Piece KnightB = new Knight(false, "src/images/Chess_knight.png");
 
-    Piece RookW = new Rook(true, "D:\\ULBS\\OOPchess_workspace\\Chess_rook_white.png");
-    Piece RookB = new Rook(false, "D:\\ULBS\\OOPchess_workspace\\Chess_rook.png");
+    Piece RookW = new Rook(true, "src/images/Chess_rook_white.png");
+    Piece RookB = new Rook(false, "src/images/Chess_rook.png");
 
-    Piece PawnW = new Pawn(true, "D:\\ULBS\\OOPchess_workspace\\Chess_pawn_white.png");
-    Piece PawnB = new Pawn(false, "D:\\ULBS\\OOPchess_workspace\\Chess_pawn.png");
+    Piece PawnW = new Pawn(true, "src/images/Chess_pawn_white.png");
+    Piece PawnB = new Pawn(false, "src/images/Chess_pawn.png");
 
     piese[0][0] = RookW;
     piese[0][1] = KnightW;
