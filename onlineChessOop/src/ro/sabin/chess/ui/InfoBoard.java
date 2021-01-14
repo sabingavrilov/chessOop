@@ -34,7 +34,7 @@ public class InfoBoard {
     data.heightHint = 370;
     infoTabel.setLayoutData(data);
     TableColumn col = new TableColumn(infoTabel, SWT.NONE);
-    col.setText("Istoric mutari adversar");
+    col.setText("Istoric mutari");
     col.setWidth(370);
   }
 

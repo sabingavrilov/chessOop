@@ -7,6 +7,7 @@ import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+//import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
@@ -117,7 +118,10 @@ public class ActiveMQUtil {
                 int ystart = Integer.parseInt(coor.charAt(1) + "");
                 int xstop = Integer.parseInt(coor.charAt(2) + "");
                 int ystop = Integer.parseInt(coor.charAt(3) + "");
-                System.out.println(myBoard);
+                if( Chess.getDisplay().isDisposed())
+                {
+                  break;
+                }
                 myBoard.appBoard.move(xstart, ystart, xstop, ystop);
                 Chess.getDisplay().syncExec(new Runnable() {
 
@@ -158,22 +162,16 @@ public class ActiveMQUtil {
       msg.setIntProperty("TYPE", type);
       msg.setLongProperty("CLIENT", CLIENT_ID);
       msg.setStringProperty("coor", coor);
+        Chess.getDisplay().syncExec(new Runnable() {
 
-      Chess.getDisplay().syncExec(new Runnable() {
-
-        @Override
-        public void run() {
-          if (type == ChessConstants.TYPE_START_INIT) {
-            InfoBoard infoBoard = Chess.getInfoBoard();
-            infoBoard.addItem("Cererea de start a fost trimisa");
+          @Override
+          public void run() {
+            if (type == ChessConstants.TYPE_START_INIT) {
+              InfoBoard infoBoard = Chess.getInfoBoard();
+              infoBoard.addItem("Cererea de start a fost trimisa");
+            }
           }
-//else if (type == ChessConstants.TYPE_START_OK) {
-//            InfoBoard infoBoard = Chess.getInfoBoard();
-//            infoBoard.addItem("Jocul a inceput... va rugam asteptati mutarea primului jucator");
-//          }
-        }
-      });
-
+        });
       producer.send(msg);
       System.out.println("Sent message!");
     } catch (JMSException e) {
